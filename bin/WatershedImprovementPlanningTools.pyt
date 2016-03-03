@@ -67,11 +67,56 @@ class TopoHydro(object):
     def execute(self, parameters, messages):
         try:
             log("Parameters are %s, %s, %s" % (parameters[0].valueAsText, parameters[1].valueAsText, parameters[2].valueAsText))
-        except Exception as err:
-            log(traceback.format_exc())
-            log(err)
-            raise err
-        return
+			# Local variables:
+			DEM = "E:\\GIS\\Lab6\\Lab06Data.gdb\\DEM"
+			fill2 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\fill2"
+			AnalysisMask = "E:\\GIS\\Lab6\\Lab06Data.gdb\\AnalysisMask"
+			mask_dem = "E:\\GIS\\Lab6\\Lab06Data.gdb\\mask_dem"
+			Output_drop_raster = ""
+			fllowd = "E:\\GIS\\Lab6\\Lab06Data.gdb\\fllowd"
+			flowaccum = "E:\\GIS\\Lab6\\Lab06Data.gdb\\flowaccum"
+			flowaccum_acre2 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\flowaccum_acre2"
+			fa_acre = "E:\\GIS\\Lab6\\Lab06Data.gdb\\fa_acre"
+			reclass = "E:\\GIS\\Lab6\\Lab06Data.gdb\\reclass"
+			streams = "E:\\GIS\\Lab6\\Lab06Data.gdb\\streams"
+
+			# Set Geoprocessing environments
+			arcpy.env.snapRaster = "DEM"
+
+			# Process: Fill
+			arcpy.gp.Fill_sa(DEM, fill2, "")
+
+			# Process: Polygon to Raster
+			arcpy.PolygonToRaster_conversion(AnalysisMask, "OBJECTID", mask_dem, "CELL_CENTER", "NONE", "40")
+
+			# Process: Flow Direction
+			tempEnvironment0 = arcpy.env.cellSize
+			arcpy.env.cellSize = mask_dem
+			tempEnvironment1 = arcpy.env.mask
+			arcpy.env.mask = mask_dem
+			arcpy.gp.FlowDirection_sa(fill2, fllowd, "NORMAL", Output_drop_raster)
+			arcpy.env.cellSize = tempEnvironment0
+			arcpy.env.mask = tempEnvironment1
+
+			# Process: Flow Accumulation
+			arcpy.gp.FlowAccumulation_sa(fllowd, flowaccum, "", "FLOAT")
+
+			# Process: Raster Calculator
+			arcpy.gp.RasterCalculator_sa("\"%flowaccum%\"*40*40", flowaccum_acre2)
+
+			# Process: Raster Calculator (2)
+			arcpy.gp.RasterCalculator_sa("\"%flowaccum_acre2%\"/43560", fa_acre)
+
+			# Process: Reclassify
+			arcpy.gp.Reclassify_sa(fa_acre, "Value", "0 785.63818370000001 NODATA;785.63818500000002 22533 1", reclass, "DATA")
+
+			# Process: Stream to Feature
+			arcpy.gp.StreamToFeature_sa(reclass, fllowd, streams, "SIMPLIFY")
+					except Exception as err:
+						log(traceback.format_exc())
+						log(err)
+						raise err
+					return
 
 class ImpCov(object):
     def __init__(self):
