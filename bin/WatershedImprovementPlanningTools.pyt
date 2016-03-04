@@ -206,6 +206,63 @@ class ImpCov(object):
 			# Process: Stream to Feature
 			arcpy.gp.StreamToFeature_sa(imper_mult1, fllowd, imperv_stream, "SIMPLIFY")
 
+			# Local variables:
+			fa_acre = "E:\\GIS\\Lab6\\Lab06Data.gdb\\fa_acre"
+			flowaccum_sqmi = "E:\\GIS\\Lab6\\Lab06Data.gdb\\flowaccum_sqmi"
+			imper_accum = "E:\\GIS\\Lab6\\Lab06Data.gdb\\imper_accum"
+			recur_2 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_2"
+			recur_2I = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_2I"
+			recur_5 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_5"
+			recur_5I = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_5I"
+			recur_10 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_10"
+			recur_10I = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_10I"
+			recur_25 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_25"
+			recur_25I = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_25I"
+			recur_50 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_50"
+			recur_50I = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_50I"
+			recur_100 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_100"
+			recur_100I = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_100I"
+
+			# Process: Raster Calculator
+			arcpy.gp.RasterCalculator_sa("\"%fa_acre%\"*0.0015625", flowaccum_sqmi)
+
+			# Process: Raster Calculator (7)
+			arcpy.gp.RasterCalculator_sa("(\"%flowaccum_sqmi%\"^0.691)*144", recur_2)
+
+			# Process: Raster Calculator (8)
+			arcpy.gp.RasterCalculator_sa("7.87*(\"%flowaccum_sqmi%\"^.539)*(\"%imper_accum%\"^.686)*(\"%recur_2%\"^.290)", recur_2I)
+
+			# Process: Raster Calculator (2)
+			arcpy.gp.RasterCalculator_sa("(\"%flowaccum_sqmi%\"^.67)*248", recur_5)
+
+			# Process: Raster Calculator (9)
+			arcpy.gp.RasterCalculator_sa("16.3*(\"%flowaccum_sqmi%\"^.489)*(\"%imper_accum%\"^0.572)*(\"%recur_5%\"^0.286)", recur_5I)
+
+			# Process: Raster Calculator (3)
+			arcpy.gp.RasterCalculator_sa("(\"%flowaccum_sqmi%\"^.665)*334", recur_10)
+
+			# Process: Raster Calculator (10)
+			arcpy.gp.RasterCalculator_sa("22.7*(\"%flowaccum_sqmi%\"^.463)*(\"%imper_accum%\"^0.515)*(\"%recur_10%\"^0.289)", recur_10I)
+
+			# Process: Raster Calculator (4)
+			arcpy.gp.RasterCalculator_sa("(\"%flowaccum_sqmi%\"^.655)*467", recur_25)
+
+			# Process: Raster Calculator (11)
+			arcpy.gp.RasterCalculator_sa("28.5*(\"%flowaccum_sqmi%\"^0.390)*(\"%imper_accum%\"^.436)*(\"%recur_25%\"^0.338)", recur_25I)
+
+			# Process: Raster Calculator (5)
+			arcpy.gp.RasterCalculator_sa("(\"%flowaccum_sqmi%\"^.65)*581", recur_50)
+
+			# Process: Raster Calculator (12)
+			arcpy.gp.RasterCalculator_sa("37.4*(\"%flowaccum_sqmi%\"^0.391)*(\"%imper_accum%\"^0.396)*(\"%recur_50%\"^0.325)", recur_50I)
+
+			# Process: Raster Calculator (6)
+			arcpy.gp.RasterCalculator_sa("(\"%flowaccum_sqmi%\"^.643)*719", recur_100)
+
+			# Process: Raster Calculator (13)
+			arcpy.gp.RasterCalculator_sa("48*(\"%flowaccum_sqmi%\"^0.392)*(\"%imper_accum%\"^0.358)*(\"%recur_100%\"^0.312)", recur_100I)
+
+
 
         except Exception as err:
             log(traceback.format_exc())
