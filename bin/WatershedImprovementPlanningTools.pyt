@@ -67,6 +67,7 @@ class TopoHydro(object):
     def execute(self, parameters, messages):
         try:
             log("Parameters are %s, %s, %s" % (parameters[0].valueAsText, parameters[1].valueAsText, parameters[2].valueAsText))
+			
 			# Local variables:
 			DEM = "E:\\GIS\\Lab6\\Lab06Data.gdb\\DEM"
 			fill2 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\fill2"
@@ -162,6 +163,50 @@ class ImpCov(object):
     def execute(self, parameters, messages):
         try:
             log("Parameters are %s, %s" % (parameters[0].valueAsText, parameters[1].valueAsText))
+			
+			# Local variables:
+			fllowd = "E:\\GIS\\Lab6\\Lab06Data.gdb\\fllowd"
+			Impervious = "E:\\GIS\\Lab6\\Lab06Data.gdb\\Impervious"
+			Impervious__3_ = Impervious
+			Imper_rast = "E:\\GIS\\Lab6\\Lab06Data.gdb\\Imper_rast"
+			block_rast = "E:\\GIS\\Lab6\\Lab06Data.gdb\\block_rast"
+			agg_rast = "E:\\GIS\\Lab6\\Lab06Data.gdb\\agg_rast"
+			imper_accum = "E:\\GIS\\Lab6\\Lab06Data.gdb\\imper_accum"
+			flowaccum = "E:\\GIS\\Lab6\\Lab06Data.gdb\\flowaccum"
+			Divide__2_ = "\\\\hd.ad.syr.edu\\02\\9b1dc2\\Documents\\ArcGIS\\Default.gdb\\Divide"
+			reclass_imperv = "E:\\GIS\\Lab6\\Lab06Data.gdb\\reclass_imperv"
+			reclass = "E:\\GIS\\Lab6\\Lab06Data.gdb\\reclass"
+			imper_mult1 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\imper_mult1"
+			imperv_stream = "E:\\GIS\\Lab6\\Lab06Data.gdb\\imperv_stream"
+
+			# Process: Calculate Field
+			arcpy.CalculateField_management(Impervious, "LENGTH", "1", "VB", "")
+
+			# Process: Feature to Raster
+			arcpy.FeatureToRaster_conversion(Impervious__3_, "LENGTH", Imper_rast, "4")
+
+			# Process: Block Statistics
+			arcpy.gp.BlockStatistics_sa(Imper_rast, block_rast, "Rectangle 10 10 CELL", "SUM", "DATA")
+
+			# Process: Aggregate
+			arcpy.gp.Aggregate_sa(block_rast, agg_rast, "10", "MEAN", "EXPAND", "DATA")
+
+			# Process: Flow Accumulation
+			arcpy.gp.FlowAccumulation_sa(fllowd, imper_accum, agg_rast, "FLOAT")
+
+			# Process: Divide
+			arcpy.gp.Divide_sa(imper_accum, flowaccum, Divide__2_)
+
+			# Process: Reclassify
+			arcpy.gp.Reclassify_sa(Divide__2_, "Value", "0 10 1;10 20 2;20 30 3;30 40 4;40 50 5;50 60 6;60 70 7;70 80 8;80 90 9;90 100 10", reclass_imperv, "DATA")
+
+			# Process: Times
+			arcpy.gp.Times_sa(reclass_imperv, reclass, imper_mult1)
+
+			# Process: Stream to Feature
+			arcpy.gp.StreamToFeature_sa(imper_mult1, fllowd, imperv_stream, "SIMPLIFY")
+
+
         except Exception as err:
             log(traceback.format_exc())
             log(err)
