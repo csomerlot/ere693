@@ -68,51 +68,56 @@ class TopoHydro(object):
         try:
             log("Parameters are %s, %s, %s" % (parameters[0].valueAsText, parameters[1].valueAsText, parameters[2].valueAsText))
 			
+			##### Flow accumulation tool!#####
 			# Local variables:
-			DEM = "E:\\GIS\\Lab6\\Lab06Data.gdb\\DEM"
-			fill2 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\fill2"
-			AnalysisMask = "E:\\GIS\\Lab6\\Lab06Data.gdb\\AnalysisMask"
-			mask_dem = "E:\\GIS\\Lab6\\Lab06Data.gdb\\mask_dem"
+			# DEM = "E:\\GIS\\Lab6\\Lab06Data.gdb\\DEM"
+			# fill2 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\fill2"
+			# AnalysisMask = "E:\\GIS\\Lab6\\Lab06Data.gdb\\AnalysisMask"
+			#mask_dem = "E:\\GIS\\Lab6\\Lab06Data.gdb\\mask_dem"
 			Output_drop_raster = ""
-			fllowd = "E:\\GIS\\Lab6\\Lab06Data.gdb\\fllowd"
-			flowaccum = "E:\\GIS\\Lab6\\Lab06Data.gdb\\flowaccum"
-			flowaccum_acre2 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\flowaccum_acre2"
-			fa_acre = "E:\\GIS\\Lab6\\Lab06Data.gdb\\fa_acre"
-			reclass = "E:\\GIS\\Lab6\\Lab06Data.gdb\\reclass"
-			streams = "E:\\GIS\\Lab6\\Lab06Data.gdb\\streams"
-
+			#fllowd = "E:\\GIS\\Lab6\\Lab06Data.gdb\\fllowd"
+			#flowaccum = "E:\\GIS\\Lab6\\Lab06Data.gdb\\flowaccum"
+			#flowaccum_acre2 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\flowaccum_acre2"
+			#fa_acre = "E:\\GIS\\Lab6\\Lab06Data.gdb\\fa_acre"
+			#reclass = "E:\\GIS\\Lab6\\Lab06Data.gdb\\reclass"
+			#streams = "E:\\GIS\\Lab6\\Lab06Data.gdb\\streams"
+			
+			DEM =parameters[0].valueAsText
+			AnalysisMask = parameters[1].valueAsText
+			
 			# Set Geoprocessing environments
 			arcpy.env.snapRaster = "DEM"
 
 			# Process: Fill
-			arcpy.gp.Fill_sa(DEM, fill2, "")
+			# arcpy.gp.Fill_sa(DEM, fill2, "")
+			fill2 = arcpy.sa.Fill(DEM)
 
 			# Process: Polygon to Raster
-			arcpy.PolygonToRaster_conversion(AnalysisMask, "OBJECTID", mask_dem, "CELL_CENTER", "NONE", "40")
-
+			# arcpy.PolygonToRaster_conversion(AnalysisMask, "OBJECTID", mask_dem, "CELL_CENTER", "NONE", "40")
+			mask_dem = arcpy.PolygonToRaster(AnalysisMask)
+			
 			# Process: Flow Direction
 			tempEnvironment0 = arcpy.env.cellSize
 			arcpy.env.cellSize = mask_dem
 			tempEnvironment1 = arcpy.env.mask
 			arcpy.env.mask = mask_dem
-			arcpy.gp.FlowDirection_sa(fill2, fllowd, "NORMAL", Output_drop_raster)
+			fllowd = FlowDirection(fill2)
 			arcpy.env.cellSize = tempEnvironment0
 			arcpy.env.mask = tempEnvironment1
 
 			# Process: Flow Accumulation
-			arcpy.gp.FlowAccumulation_sa(fllowd, flowaccum, "", "FLOAT")
+			flowaccum = FlowAccumulation(fllowd)
 
 			# Process: Raster Calculator
-			arcpy.gp.RasterCalculator_sa("\"%flowaccum%\"*40*40", flowaccum_acre2)
+			fa_acre = flowaccum * 40*40/43560
 
-			# Process: Raster Calculator (2)
-			arcpy.gp.RasterCalculator_sa("\"%flowaccum_acre2%\"/43560", fa_acre)
 
 			# Process: Reclassify
-			arcpy.gp.Reclassify_sa(fa_acre, "Value", "0 785.63818370000001 NODATA;785.63818500000002 22533 1", reclass, "DATA")
+			reclass = Reclassify(fa_acre, "Value", "0 785.63818370000001 NODATA;785.63818500000002 22533 1")
 
 			# Process: Stream to Feature
-			arcpy.gp.StreamToFeature_sa(reclass, fllowd, streams, "SIMPLIFY")
+			streams = StreamToFeature(reclass, fllowd, streams, "SIMPLIFY")
+			
 					except Exception as err:
 						log(traceback.format_exc())
 						log(err)
@@ -163,7 +168,7 @@ class ImpCov(object):
     def execute(self, parameters, messages):
         try:
             log("Parameters are %s, %s" % (parameters[0].valueAsText, parameters[1].valueAsText))
-			
+			######Impervious Areas Tool
 			# Local variables:
 			fllowd = "E:\\GIS\\Lab6\\Lab06Data.gdb\\fllowd"
 			Impervious = "E:\\GIS\\Lab6\\Lab06Data.gdb\\Impervious"
@@ -205,65 +210,123 @@ class ImpCov(object):
 
 			# Process: Stream to Feature
 			arcpy.gp.StreamToFeature_sa(imper_mult1, fllowd, imperv_stream, "SIMPLIFY")
-
+			
+			#####Impervious Regression Tool For NC
+						
 			# Local variables:
 			fa_acre = "E:\\GIS\\Lab6\\Lab06Data.gdb\\fa_acre"
 			flowaccum_sqmi = "E:\\GIS\\Lab6\\Lab06Data.gdb\\flowaccum_sqmi"
-			imper_accum = "E:\\GIS\\Lab6\\Lab06Data.gdb\\imper_accum"
+			DIV_accum = "E:\\GIS\\Lab6\\Lab06Data.gdb\\DIV_accum"
+			Input_raster_or_constant_value_2 = "100"
+			Div01 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\Div01"
 			recur_2 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_2"
 			recur_2I = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_2I"
-			recur_5 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_5"
-			recur_5I = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_5I"
+			reclass_2I = "E:\\GIS\\Lab6\\Lab06Data.gdb\\reclass_2I"
+			fllowd = "E:\\GIS\\Lab6\\Lab06Data.gdb\\fllowd"
+			stream_2V = "E:\\GIS\\Lab6\\Lab06Data.gdb\\stream_2V"
 			recur_10 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_10"
 			recur_10I = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_10I"
+			relcass_10I = "E:\\GIS\\Lab6\\Lab06Data.gdb\\relcass_10I"
+			stream_10V = "E:\\GIS\\Lab6\\Lab06Data.gdb\\stream_10V"
 			recur_25 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_25"
 			recur_25I = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_25I"
+			reclass_25I = "E:\\GIS\\Lab6\\Lab06Data.gdb\\reclass_25I"
+			stream_25V = "E:\\GIS\\Lab6\\Lab06Data.gdb\\stream_25V"
 			recur_50 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_50"
 			recur_50I = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_50I"
+			reclass_50I = "E:\\GIS\\Lab6\\Lab06Data.gdb\\reclass_50I"
+			streams_50V = "E:\\GIS\\Lab6\\Lab06Data.gdb\\streams_50V"
 			recur_100 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_100"
 			recur_100I = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_100I"
+			reclass_100I = "E:\\GIS\\Lab6\\Lab06Data.gdb\\reclass_100I"
+			streams_100V = "E:\\GIS\\Lab6\\Lab06Data.gdb\\streams_100V"
+			recur_5_5 = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_5_5"
+			recur_5I = "E:\\GIS\\Lab6\\Lab06Data.gdb\\recur_5I"
+			reclass_5I = "E:\\GIS\\Lab6\\Lab06Data.gdb\\reclass_5I"
+			streams_5V = "E:\\GIS\\Lab6\\Lab06Data.gdb\\streams_5V"
 
 			# Process: Raster Calculator
 			arcpy.gp.RasterCalculator_sa("\"%fa_acre%\"*0.0015625", flowaccum_sqmi)
 
+			# Process: Divide
+			arcpy.gp.Divide_sa(DIV_accum, Input_raster_or_constant_value_2, Div01)
+
 			# Process: Raster Calculator (7)
-			arcpy.gp.RasterCalculator_sa("(\"%flowaccum_sqmi%\"^0.691)*144", recur_2)
+			arcpy.gp.RasterCalculator_sa("(\"%flowaccum_sqmi%\"**0.691)*144", recur_2)
 
 			# Process: Raster Calculator (8)
-			arcpy.gp.RasterCalculator_sa("7.87*(\"%flowaccum_sqmi%\"^.539)*(\"%imper_accum%\"^.686)*(\"%recur_2%\"^.290)", recur_2I)
+			arcpy.gp.RasterCalculator_sa("7.87*(\"%flowaccum_sqmi%\"**.539)*(\"%Div01%\"**.686)*(\"%recur_2%\"**.290)", recur_2I)
 
-			# Process: Raster Calculator (2)
-			arcpy.gp.RasterCalculator_sa("(\"%flowaccum_sqmi%\"^.67)*248", recur_5)
+			# Process: Reclassify
+			arcpy.gp.Reclassify_sa(recur_2I, "Value", "0 40 NODATA;40 146 1", reclass_2I, "DATA")
 
-			# Process: Raster Calculator (9)
-			arcpy.gp.RasterCalculator_sa("16.3*(\"%flowaccum_sqmi%\"^.489)*(\"%imper_accum%\"^0.572)*(\"%recur_5%\"^0.286)", recur_5I)
+			# Process: Stream to Feature
+			arcpy.gp.StreamToFeature_sa(reclass_2I, fllowd, stream_2V, "SIMPLIFY")
 
 			# Process: Raster Calculator (3)
-			arcpy.gp.RasterCalculator_sa("(\"%flowaccum_sqmi%\"^.665)*334", recur_10)
+			arcpy.gp.RasterCalculator_sa("(\"%flowaccum_sqmi%\"**.665)*334", recur_10)
 
 			# Process: Raster Calculator (10)
-			arcpy.gp.RasterCalculator_sa("22.7*(\"%flowaccum_sqmi%\"^.463)*(\"%imper_accum%\"^0.515)*(\"%recur_10%\"^0.289)", recur_10I)
+			arcpy.gp.RasterCalculator_sa("22.7*(\"%flowaccum_sqmi%\"**.463)*(\"%Div01%\"**0.515)*(\"%recur_10%\"**0.289)", recur_10I)
+
+			# Process: Reclassify (3)
+			arcpy.gp.Reclassify_sa(recur_10I, "Value", "0 40 NODATA;40 527 1", relcass_10I, "DATA")
+
+			# Process: Stream to Feature (2)
+			arcpy.gp.StreamToFeature_sa(relcass_10I, fllowd, stream_10V, "SIMPLIFY")
 
 			# Process: Raster Calculator (4)
-			arcpy.gp.RasterCalculator_sa("(\"%flowaccum_sqmi%\"^.655)*467", recur_25)
+			arcpy.gp.RasterCalculator_sa("(\"%flowaccum_sqmi%\"**.655)*467", recur_25)
 
 			# Process: Raster Calculator (11)
-			arcpy.gp.RasterCalculator_sa("28.5*(\"%flowaccum_sqmi%\"^0.390)*(\"%imper_accum%\"^.436)*(\"%recur_25%\"^0.338)", recur_25I)
+			arcpy.gp.RasterCalculator_sa("28.5*(\"%flowaccum_sqmi%\"**0.390)*(\"%Div01%\"**.436)*(\"%recur_25%\"**0.338)", recur_25I)
+
+			# Process: Reclassify (4)
+			arcpy.gp.Reclassify_sa(recur_25I, "Value", "0 40 NODATA;40 963 1", reclass_25I, "DATA")
+
+			# Process: Stream to Feature (3)
+			arcpy.gp.StreamToFeature_sa(reclass_25I, fllowd, stream_25V, "SIMPLIFY")
 
 			# Process: Raster Calculator (5)
-			arcpy.gp.RasterCalculator_sa("(\"%flowaccum_sqmi%\"^.65)*581", recur_50)
+			arcpy.gp.RasterCalculator_sa("(\"%flowaccum_sqmi%\"**.65)*581", recur_50)
 
 			# Process: Raster Calculator (12)
-			arcpy.gp.RasterCalculator_sa("37.4*(\"%flowaccum_sqmi%\"^0.391)*(\"%imper_accum%\"^0.396)*(\"%recur_50%\"^0.325)", recur_50I)
+			arcpy.gp.RasterCalculator_sa("37.4*(\"%flowaccum_sqmi%\"**0.391)*(\"%Div01%\"**0.396)*(\"%recur_50%\"**0.325)", recur_50I)
+
+			# Process: Reclassify (5)
+			arcpy.gp.Reclassify_sa(recur_50I, "Value", "0 40 NODATA;40 1297 1", reclass_50I, "DATA")
+
+			# Process: Stream to Feature (4)
+			arcpy.gp.StreamToFeature_sa(reclass_50I, fllowd, streams_50V, "SIMPLIFY")
 
 			# Process: Raster Calculator (6)
-			arcpy.gp.RasterCalculator_sa("(\"%flowaccum_sqmi%\"^.643)*719", recur_100)
+			arcpy.gp.RasterCalculator_sa("(\"%flowaccum_sqmi%\"**.643)*719", recur_100)
 
 			# Process: Raster Calculator (13)
-			arcpy.gp.RasterCalculator_sa("48*(\"%flowaccum_sqmi%\"^0.392)*(\"%imper_accum%\"^0.358)*(\"%recur_100%\"^0.312)", recur_100I)
+			arcpy.gp.RasterCalculator_sa("48*(\"%flowaccum_sqmi%\"**0.392)*(\"%Div01%\"**0.358)*(\"%recur_100%\"**0.312)", recur_100I)
+
+			# Process: Reclassify (6)
+			arcpy.gp.Reclassify_sa(recur_100I, "Value", "0 40 NODATA;40 1687 1", reclass_100I, "DATA")
+
+			# Process: Stream to Feature (5)
+			arcpy.gp.StreamToFeature_sa(reclass_100I, fllowd, streams_100V, "SIMPLIFY")
+
+			# Process: Raster Calculator (2)
+			arcpy.gp.RasterCalculator_sa("(248*(\"%flowaccum_sqmi%\"**0.670))", recur_5_5)
+
+			# Process: Raster Calculator (9)
+			arcpy.gp.RasterCalculator_sa("16.3*(\"%flowaccum_sqmi%\"**.489)*(\"%Div01%\"**0.572)*(\"%recur_5_5%\"**0.286)", recur_5I)
+
+			# Process: Reclassify (2)
+			arcpy.gp.Reclassify_sa(recur_5I, "Value", "0 40 NODATA;40 340 1", reclass_5I, "DATA")
+
+			# Process: Stream to Feature (6)
+			arcpy.gp.StreamToFeature_sa(reclass_5I, fllowd, streams_5V, "SIMPLIFY")
 
 
 
+			
+			
         except Exception as err:
             log(traceback.format_exc())
             log(err)
