@@ -42,13 +42,16 @@ for R in range(1, height-1):
     if count in [1, 2, 5, 10, 15, 25, 50, 100, 200, 500, 1000, 1500, 2000]:
         print "Processing %i rows took %i seconds" % (count, (time.time()-start))
     count += 1
+    
     for C in range(1, width-1):
         c = C
         r = R
+        passedVal = 1
         while 0 < r < height and 0 < c < width:
             bmpval = bmppointData[r][c]
-            if bmpval < 0: bmpval = 0
-            outputData[r][c] += (1-bmpval)
+            if bmpval > 0: 
+                passedVal = 1 - bmpval
+            outputData[r][c] += passedVal
             flowdirval = flowdirData[r][c]
             if flowdirval == 1:
                 c += 1
