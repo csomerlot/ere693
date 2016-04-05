@@ -1,11 +1,11 @@
 
 
-
+print "Loading arcpy"
 # import library packages
 import arcpy, os, sys, numpy
 from bmpFlowModFast import *
 
-
+print "Checking inputs"
 # get parameters (input and output datasets, filenames, etc)
 # Flow_Direction = Raster(arcpy.getParameterAsText(0))
 # BMP_Points     = Raster(arcpy.getParameterAsText(1))
@@ -33,8 +33,8 @@ if len(bmppointData) != height:
     print len(bmppointData[0]), height, width
     raise Exception("Heights are not the same")
 if len(bmppointData[0]) != width: raise Exception("Widths are not the same")
-   
-outputData = flowAccumulate(flowdir)
+
+outputData = flowAccumulate(flowdirData)
 
 # save outputs
 outputRaster = arcpy.NumPyArrayToRaster(outputData,lowerLeft,cellSize)
