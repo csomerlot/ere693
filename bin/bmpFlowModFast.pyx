@@ -1,56 +1,77 @@
-import time, numpy
+import time
+import numpy
+cimport numpy
+ITYPE = numpy.int
+ctypedef numpy.int_t ITYPE_t
+DTYPE = numpy.double
+ctypedef numpy.double_t DTYPE_t
 
-def flowAccumulate(flowdirData, bmppointData=None):
+def flowAccumulate(numpy.ndarray[ITYPE_t, ndim=2] flowdirData not None, numpy.ndarray[DTYPE_t, ndim=2] weightData=None, numpy.ndarray[DTYPE_t, ndim=2] bmppointData=None):
     '''process (loop through) datasets'''
     
     #Make output array
-    height = len(flowdirData)
-    width = len(flowdirData[0])
-    outputData = numpy.empty([height, width], dtype=float)
+    cdef int height = flowdirData.shape[0]
+    cdef int width  = flowdirData.shape[1]
+    print "Rows: %i\tCols: %i" % (height, width)
+    cdef numpy.ndarray[DTYPE_t, ndim=2] outputData = numpy.empty([height, width], dtype=DTYPE)
     
-    start = time.time()
     print "Starting at %s" % (time.asctime())
-    count = 0
+    cdef int count = 0
+    cdef int R = 0
+    cdef int C = 0
+    cdef int r = 0
+    cdef int c = 0
+    cdef int flowdir = 0
+    cdef double reduction = 1.0
+    cdef double weight = 1.0
+    
     for R in range(1, height-1):
-        if count in [1, 2, 5, 10, 15, 25, 50, 100, 200, 500, 1000, 1500, 2000]:
-            print "Processing %i rows took %i seconds" % (count, (time.time()-start))
-        count += 1
-        
         for C in range(1, width-1):
             c = C
             r = R
-            passedVal = 1
-            while 0 < r < height and 0 < c < width:
-                if bmppointData:
-                    bmpval = bmppointData[r][c]
+            reduction = 1.0
+            count += 1
+
+            if isinstance(weightData, numpy.ndarray): 
+                weight = weightData[r, c]
+            else:
+                weight = 1.0
+                    
+            while 0 < r < height-1 and 0 < c < width-1:
+            
+                if isinstance(bmppointData, numpy.ndarray):
+                    bmpval = bmppointData[r, c]
                     if bmpval > 0: 
-                        passedVal = 1 - bmpval
-                outputData[r][c] += passedVal
-                flowdirval = flowdirData[r][c]
+                        reduction = 1 - bmpval
+                        
+                outputData[r, c] += weight*reduction
+                
+                flowdirval = flowdirData[r, c]
                 if flowdirval == 1:
                     c += 1
                     r += 0
-                if flowdirval == 2:
+                elif flowdirval == 2:
                     c += 1
                     r += 1
-                if flowdirval == 4:
+                elif flowdirval == 4:
                     c += 0
                     r += 1
-                if flowdirval == 8:
+                elif flowdirval == 8:
                     c += -1
                     r += 1
-                if flowdirval == 16:
+                elif flowdirval == 16:
                     c += -1
                     r += 0
-                if flowdirval == 32:
+                elif flowdirval == 32:
                     c += -1
                     r += -1
-                if flowdirval == 64:
+                elif flowdirval == 64:
                     c += 0
                     r += -1
-                if flowdirval == 128:
+                elif flowdirval == 128:
                     c += 1
                     r += -1
-                    
+                else: break    
+                
     return outputData
     
