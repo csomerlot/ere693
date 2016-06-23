@@ -12,10 +12,10 @@ def flowAccumulate(numpy.ndarray[ITYPE_t, ndim=2] flowdirData not None, numpy.nd
     #Make output array
     cdef int height = flowdirData.shape[0]
     cdef int width  = flowdirData.shape[1]
-    print "Rows: %i\tCols: %i" % (height, width)
+    # print "Rows: %i\tCols: %i" % (height, width)
     cdef numpy.ndarray[DTYPE_t, ndim=2] outputData = numpy.empty([height, width], dtype=DTYPE)
     
-    print "Starting at %s" % (time.asctime())
+    # print "Starting at %s" % (time.asctime())
     cdef int count = 0
     cdef int R = 0
     cdef int C = 0

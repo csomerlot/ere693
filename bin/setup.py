@@ -1,10 +1,10 @@
 from distutils.core import setup
 from Cython.Build import cythonize
-import sys
-sys.argv += ['build_ext', '--inplace']
+import numpy
 
 setup(
-    ext_modules = cythonize("bmpFlowModFast.pyx")
+    ext_modules = cythonize("bmpFlowModFast.pyx"),
+    include_dirs=[numpy.get_include()]
 )
 
 
