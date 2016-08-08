@@ -22,14 +22,12 @@ def flowAccumulate(numpy.ndarray[ITYPE_t, ndim=2] flowdirData not None, numpy.nd
     cdef int r = 0
     cdef int c = 0
     cdef int flowdir = 0
-    cdef double reduction = 1.0
     cdef double weight = 1.0
     
     for R in range(1, height-1):
         for C in range(1, width-1):
             c = C
             r = R
-            reduction = 1.0
             count += 1
 
             if isinstance(weightData, numpy.ndarray): 
@@ -42,9 +40,9 @@ def flowAccumulate(numpy.ndarray[ITYPE_t, ndim=2] flowdirData not None, numpy.nd
                 if isinstance(bmppointData, numpy.ndarray):
                     bmpval = bmppointData[r, c]
                     if bmpval > 0: 
-                        reduction = 1 - bmpval
+                        weight = weight * (1 - bmpval)
                         
-                outputData[r, c] += weight*reduction
+                outputData[r, c] += weight
                 
                 flowdirval = flowdirData[r, c]
                 if flowdirval == 1:

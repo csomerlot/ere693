@@ -10,7 +10,7 @@ print "Checking inputs"
 # Flow_Direction = Raster(arcpy.getParameterAsText(0))
 # BMP_Points     = Raster(arcpy.getParameterAsText(1))
 # Output         = arcpy.getParameterAsText(2)
-Flow_Direction = arcpy.Raster("C:/Users/csomerlot/Desktop/Lab05Data/Lab05Geodatabase.gdb/FlowDir_Fill1")
+Flow_Direction = arcpy.Raster("flowdir.tif")
 BMP_Points     = arcpy.Raster("C:/Users/csomerlot/Desktop/Lab05Data/Lab05Geodatabase.gdb/BMP_Points_PointToRaster")
 Output         = "C:/Users/csomerlot/Desktop/Lab05Data/Lab05Geodatabase.gdb/output"
 
